@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/icon.webp">
+    <title>QR Code Generator for Your Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            padding: 40px 20px;
+            background-color: #f7f7f7;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body {
+	background: linear-gradient(
+		-45deg,
+		#ffffff,
+		#ffe4e9,
+		#8490f9,
+		#3eb0e9,
+		#4068cf,
+		#6f91e5,
+		#8eb8ff,
+		#91efff,
+		#d5f9ff
+	);
+	background-size: 400% 400%;
+	animation: gradient 9s ease infinite;
+	height: 100vh;
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+        section {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(247, 247, 247, 0.5); /* Semi-transparent background */
+  backdrop-filter: blur(10px); /* Adjust the blur intensity */
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  border-radius: 10px; /* Optional: Rounding the corners */
+  border: 1px solid rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 0px;
+            box-shadow: 0 8px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form {
+            border-radius: 0 0 4px 4px; /* Top corners sharp, bottom corners rounded */
+        }
+
+        section.error-message{
+            border-radius: 0px;
+        }
+
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #007acc;
+            text-align: center;
+        }
+
+        .description {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        input[type="url"] {
+            font-size: 1.25em;
+            width: 70%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007acc;
+            color: white;
+            font-size: 1.25em;
+            padding: 10px;
+            width: 25%;
+            cursor: pointer;
+            border: 0px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        .error-message {
+            display: none;
+            color: red;
+            font-size: 1.8rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .error-message-active {
+            display: block;
+            text-align: center; /* Center text horizontally */
+            margin: 0 auto;
+        }
+
+        .success-message {
+            display: none;
+            color: rgb(255, 255, 255);
+            font-size: 2rem;
+            font-weight: bold; /* Or any other style you prefer */
+        }
+
+        .success-message-active {
+            display: block;
+            text-align: center; /* Center text horizontally */
+            margin: 0 auto; 
+        }
+    
+
+        .qrcode-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        #qrcode {
+            width: 100%;
+            max-width: 512px; /* Max size for larger screens */
+            height: auto;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            input[type="url"] {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #qrcode {
+                max-width: 400px; /* Smaller max size for tablets */
+            }
+        }
+
+        @media (max-width: 480px) {
+            #qrcode {
+                max-width: 300px; /* Smaller max size for mobile phones */
+            }
+        }
+    </style>
+<script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let url = document.querySelector('[name="url"]');
+        let errorMessage = document.querySelector('.error-message');
+        let successMessage = document.querySelector('.success-message'); // Add this
+        let qrcodeContainer = document.getElementById("qrcode");
+
+        // Function to calculate the QR code size dynamically
+        let calculateQRCodeSize = function() {
+            let containerWidth = qrcodeContainer.clientWidth;
+            return Math.min(containerWidth, 512); // Max size 512px, but can scale down
+        };
+
+        // Initial QRCode creation with dynamic size
+        let qrcode = new QRCode(qrcodeContainer, {
+            width: calculateQRCodeSize(),
+            height: calculateQRCodeSize()
+        });
+
+        let showErrorMessage = function(message) {
+            errorMessage.innerHTML = message;
+            errorMessage.classList.add('error-message-active');
+            successMessage.classList.remove('success-message-active'); // Hide success message
+            qrcodeContainer.querySelector('img').style.display = 'none';
+            qrcodeContainer.querySelector('img').src = '';
+            let canvas = qrcodeContainer.querySelector('canvas');
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'block';
+            url.focus();
+        };
+
+        let hideErrorMessage = function() {
+            errorMessage.classList.remove('error-message-active');
+            errorMessage.innerHTML = '';
+        };
+
+        let showSuccessMessage = function() {
+            successMessage.innerHTML = 'Your QR Code Below';
+            successMessage.classList.add('success-message-active'); // Show success message
+        };
+
+        let makeCode = function() {
+            if (url.value === '') {
+                showErrorMessage('Enter the address of the resource that you want to generate');
+                return;
+            }
+
+            if (!url.value.match(/^[a-z]+:\/\//)) {
+                showErrorMessage('Address should start with protocol, \n for example: http:// or https://');
+                return;
+            }
+
+            hideErrorMessage();
+            showSuccessMessage(); // Show success message
+
+            // Update QRCode size dynamically before generating
+            qrcode._htOption.width = calculateQRCodeSize();
+            qrcode._htOption.height = calculateQRCodeSize();
+            qrcode.makeCode(url.value);
+        };
+
+        url.addEventListener('input', function() {
+            hideErrorMessage();
+        });
+
+        document.querySelector('button').addEventListener('click', function() {
+            makeCode();
+        });
+
+        // Adjust QRCode size when window is resized
+        window.addEventListener('resize', function() {
+            qrcode._htOption.width = calculateQRCodeSize();
+            qrcode._htOption.height = calculateQRCodeSize();
+            if (url.value) {
+                qrcode.makeCode(url.value);
+            }
+        });
+    });
+</script>
+</head>
+<body>
+    <section>
+        <h1>QR Code Generator for Your Website</h1>
+        <p class="description">In the field below, paste the URL of your website and click &laquo;Generate&raquo;. The QR code will be displayed below.</p>
+    </section>
+
+    <section class="form">
+        <input type="url" name="url" placeholder="https://yourwebsite.com/">
+        <button>Generate</button>
+    </section>
+
+    <section>
+        <div class="error-message"></div>
+        <div class="success-message"></div>
+    </section>
+
+    <section class="qrcode-container">
+        <div id="qrcode"></div>
+    </section>
+
+    <footer>&copy; 2024 Intellectual Property of Nikita Schasny</footer>
+</body>
+</html>
